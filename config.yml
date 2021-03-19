@@ -1,0 +1,27 @@
+# ===================================================================== #
+#                                                                       #
+#    .oooooo.   ooooo              .o.       ooooo      ooo  .oooooo..o #
+#   d8P'  `Y8b  `888'             .888.      `888b.     `8' d8P'    `Y8 #
+#  888           888             .8"888.      8 `88b.    8  Y88bo.      #
+#  888           888            .8' `888.     8   `88b.  8   `"Y8888o.  #
+#  888           888           .88ooo8888.    8     `88b.8       `"Y88b #
+#  `88b    ooo   888       o  .8'     `888.   8       `888  oo     .d8P #
+#   `Y8bood8P'  o888ooooood8 o88o     o8888o o8o        `8  8""88888P'  #
+#  2                                                                    #
+# ===================================================================== #
+# ThousandOunces / short1der / rcj0003 (https://github.com/rcj0003) @ 2021
+
+# [ Configured ] You must set this to true before the plugin can start up.
+configured: false
+
+# [ Clan Capacity ] Self explanatory. New clans will have a max capacity of this when created.
+initial-clan-capacity: 5
+
+# [ Database Settings ] Alter settings related to the database.
+database:
+   ip: 133.7.4.20
+   port: 3306
+   # [ Database Name ] The name of the actual database (not the address or username).
+   database: database
+   username: root
+   password: admin

@@ -19,7 +19,7 @@ public class AdminCommand extends SuperCommand implements SubCommand {
 
 	public AdminCommand(Plugin plugin, ClanService clanService, MessageConfiguration config, String name,
 			String permission, MessageWrapper wrapper, CommandProcessor parentProcessor) {
-		super(name, permission, "clans.admin", wrapper);
+		super(plugin.getDescription().getName(), name, permission, wrapper);
 
 		registerSubcommand(
 				new HelpCommand(this.registeredCommands, "Clans Admin", "clans admin", "clans.command.admin"),

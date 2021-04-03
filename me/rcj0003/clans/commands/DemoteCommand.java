@@ -1,6 +1,7 @@
 package me.rcj0003.clans.commands;
 
 import org.bukkit.Bukkit;
+import org.bukkit.OfflinePlayer;
 import org.bukkit.entity.Player;
 import org.bukkit.plugin.Plugin;
 import org.bukkit.scheduler.BukkitRunnable;
@@ -56,19 +57,35 @@ public class DemoteCommand extends ArgumentSubCommand {
 
 	@Override
 	public void executeVerified(CommandUser user, Object[] values) {
-		Player player = (Player) values[0];
+		OfflinePlayer player = (OfflinePlayer) values[0];
+		
+		if (player.getUniqueId() == user.getPlayer().getUniqueId()) {
+			user.sendFormattedMessage(config.getMessage(MessageType.CANT_DO_ON_SELF));
+			return;
+		}
+		
 		Clan clan = clanService.getClanForPlayer(user.getPlayer());
+
+		if (clan == null) {
+			user.sendFormattedMessage(config.getMessage(MessageType.NOT_IN_CLAN_ERROR));
+			return;
+		}
 		
 		if (!clan.getMembers().contains(player.getUniqueId())) {
 			user.sendFormattedMessage(config.getMessage(MessageType.MEMBER_NOT_IN_CLAN, player.getName()));
 			return;
 		}
 		
-		ClanMember demotee = clanService.getClanMember(player);
+		ClanMember demotee = clanService.getClanMember(player.getUniqueId());
 		ClanMember you = clanService.getClanMember(user.getPlayer());
 		
 		if (!you.getRole().hasHigherWeightThan(demotee.getRole())) {
 			user.sendFormattedMessage(config.getMessage(MessageType.HIGHER_ROLE_REQUIRED));
+			return;
+		}
+		
+		if (demotee.getRole() == ClanRole.MEMBER) {
+			user.sendFormattedMessage(config.getMessage(MessageType.CANT_DEMOTE));
 			return;
 		}
 		

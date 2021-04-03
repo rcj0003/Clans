@@ -5,6 +5,7 @@ import org.bukkit.plugin.Plugin;
 import org.bukkit.scheduler.BukkitRunnable;
 
 import me.rcj0003.clans.config.MessageConfiguration;
+import me.rcj0003.clans.config.MessageType;
 import me.rcj0003.clans.group.ClanMember;
 import me.rcj0003.clans.group.ClanService;
 import me.rcj0003.clans.utils.command.CommandUser;
@@ -21,6 +22,7 @@ public class GiveCurrencyCommand extends ArgumentSubCommand {
 	private MessageConfiguration config;
 	
 	public GiveCurrencyCommand(Plugin plugin, ClanService clanService, MessageConfiguration config) {
+		this.plugin = plugin;
 		this.clanService = clanService;
 		this.config = config;
 	}
@@ -59,7 +61,7 @@ public class GiveCurrencyCommand extends ArgumentSubCommand {
 				member.setCurrency(member.getCurrency() + value);
 				
 				if (member.isOnline())
-					member.message();
+					member.message(config.getMessage(MessageType.AWARD_CURRENCY, value));
 				
 				user.sendFormattedMessage();
 				

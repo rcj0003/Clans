@@ -1,21 +1,29 @@
 package me.rcj0003.clans.commands;
 
+import java.util.Map;
+
 import me.rcj0003.clans.config.MessageConfiguration;
 import me.rcj0003.clans.config.MessageType;
 import me.rcj0003.clans.group.ClanMember;
 import me.rcj0003.clans.group.ClanService;
+import me.rcj0003.clans.shop.ShopItem;
+import me.rcj0003.clans.shop.gui.ShopGui;
 import me.rcj0003.clans.utils.command.CommandUser;
 import me.rcj0003.clans.utils.command.SubCommand;
 import me.rcj0003.clans.utils.command.exceptions.InvalidArgumentException;
+import me.rcj0003.clans.utils.gui.GuiHandler;
 
-public class ToggleChatCommand implements SubCommand {
-	private static final String[] DESCRIPTION = new String[] { "Toggles clan chat." };
-	private ClanService clanService;
+public class ShopCommand implements SubCommand {
 	private MessageConfiguration config;
+	private ClanService clanService;
+	private GuiHandler guiHandler;
+	private Map<Integer, ShopItem> items;
 	
-	public ToggleChatCommand(ClanService clanService, MessageConfiguration config) {
-		this.clanService = clanService;
+	public ShopCommand(ClanService clanService, MessageConfiguration config, GuiHandler guiHandler, Map<Integer, ShopItem> items) {
 		this.config = config;
+		this.clanService = clanService;
+		this.guiHandler = guiHandler;
+		this.items = items;
 	}
 	
 	public boolean getRequiresPlayer() {
@@ -27,11 +35,11 @@ public class ToggleChatCommand implements SubCommand {
 	}
 
 	public String getName() {
-		return "togglechat";
+		return "shop";
 	}
 
 	public String[] getDescription() {
-		return DESCRIPTION;
+		return null;
 	}
 
 	public String getUsage() {
@@ -46,12 +54,6 @@ public class ToggleChatCommand implements SubCommand {
 			return;
 		}
 		
-		member.setChatActive(!member.isChatActive());
-		
-		if (member.isChatActive()) {
-			user.sendFormattedMessage(config.getMessage(MessageType.TOGGLE_CHAT_ON));
-		} else {
-			user.sendFormattedMessage(config.getMessage(MessageType.TOGGLE_CHAT_OFF));
-		}
+		guiHandler.openGui(user.getPlayer(), new ShopGui(user.getPlayer(), guiHandler, items));
 	}
 }

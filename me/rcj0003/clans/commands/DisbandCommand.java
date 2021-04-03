@@ -7,36 +7,37 @@ import me.rcj0003.clans.config.MessageConfiguration;
 import me.rcj0003.clans.config.MessageType;
 import me.rcj0003.clans.group.Clan;
 import me.rcj0003.clans.group.ClanMember;
-import me.rcj0003.clans.group.ClanPerk;
 import me.rcj0003.clans.group.ClanRole;
 import me.rcj0003.clans.group.ClanService;
-import me.rcj0003.clans.group.exceptions.ClanDoesNotExistException;
+import me.rcj0003.clans.utils.MessageBuilder;
 import me.rcj0003.clans.utils.command.CommandUser;
 import me.rcj0003.clans.utils.command.SubCommand;
 import me.rcj0003.clans.utils.command.exceptions.InvalidArgumentException;
+import net.md_5.bungee.api.chat.BaseComponent;
+import net.md_5.bungee.api.chat.ClickEvent;
 
-public class TagCommand implements SubCommand {
-	private static final String[] DESCRIPTION = new String[] { "If your clan has the perk, you can set your personal tag." };
+public class DisbandCommand implements SubCommand {
+	private static final String[] DESCRIPTION = new String[] { "Disbands your clan. Commands requires confirmation." };
 	private Plugin plugin;
 	private ClanService clanService;
 	private MessageConfiguration config;
-	
-	public TagCommand(Plugin plugin, ClanService clanService, MessageConfiguration config) {
+
+	public DisbandCommand(Plugin plugin, ClanService clanService, MessageConfiguration config) {
 		this.plugin = plugin;
 		this.clanService = clanService;
 		this.config = config;
 	}
-	
+
 	public boolean getRequiresPlayer() {
 		return true;
 	}
 
 	public int getMinimumArguments() {
-		return 1;
+		return 0;
 	}
 
 	public String getName() {
-		return "tag";
+		return "disband";
 	}
 
 	public String[] getDescription() {
@@ -44,7 +45,7 @@ public class TagCommand implements SubCommand {
 	}
 
 	public String getUsage() {
-		return "[Tag]";
+		return "";
 	}
 
 	public void execute(CommandUser user, String[] arguments) throws InvalidArgumentException {
@@ -55,31 +56,25 @@ public class TagCommand implements SubCommand {
 			return;
 		}
 		
-		if (!clan.hasPerk(ClanPerk.MOTD)) {
-			user.sendFormattedMessage(config.getMessage(MessageType.TAG_NOT_UNLOCKED));
-			return;
-		}
-		
 		ClanMember member = clanService.getClanMember(user.getPlayer());
 		
-		if (!member.getRole().hasHigherWeightThan(ClanRole.MEMBER)) {
+		if (member.getRole() != ClanRole.LEADER) {
 			user.sendFormattedMessage(config.getMessage(MessageType.HIGHER_ROLE_REQUIRED));
 			return;
 		}
 		
-		String tag = arguments[0];
-		
-		if (tag.length() > 12) {
-			user.sendFormattedMessage(config.getMessage(MessageType.TAG_TOO_LONG));
-			return;
+		if (arguments.length > 0 && arguments[0].equalsIgnoreCase("--confirm")) {
+			new BukkitRunnable() {
+				public void run() {
+					clanService.deleteClan(clan);
+				}
+			}.runTaskAsynchronously(plugin);
+		} else {
+			user.sendFormattedMessage(config.getMessage(MessageType.DISBAND_CLAN_CONFIRM));
+			MessageBuilder message = new MessageBuilder();
+			message.addText(false, config.getMessage(MessageType.CLICK_TO_ACCEPT, "Confirm"));
+			user.getPlayer().spigot().sendMessage(new BaseComponent[] { message
+					.addEvent(new ClickEvent(ClickEvent.Action.RUN_COMMAND, "/clans disband --confirm")).build() });
 		}
-		
-		member.setTag(tag);
-		
-		new BukkitRunnable() {
-			public void run() {
-				member.update();
-			}
-		}.runTaskAsynchronously(plugin);
 	}
 }

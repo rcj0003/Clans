@@ -1,5 +1,6 @@
 package me.rcj0003.clans;
 
+import java.util.List;
 import java.util.UUID;
 
 import org.bukkit.entity.Player;
@@ -7,6 +8,7 @@ import org.bukkit.entity.Player;
 import me.rcj0003.clans.group.Clan;
 import me.rcj0003.clans.group.ClanFactory;
 import me.rcj0003.clans.group.ClanMember;
+import me.rcj0003.clans.group.ClanResults;
 import me.rcj0003.clans.group.exceptions.ClanDataException;
 import me.rcj0003.clans.group.exceptions.ClanDoesNotExistException;
 import me.rcj0003.clans.group.exceptions.ClanFactorySetupException;
@@ -40,6 +42,10 @@ public class DummyClanFactory implements ClanFactory {
 	}
 
 	public void deleteClan(UUID id) throws ClanDataException {
+		throw new ClanDataException("Method not implemented.");
+	}
+
+	public List<ClanResults> getTopClans() {
 		throw new ClanDataException("Method not implemented.");
 	}
 }

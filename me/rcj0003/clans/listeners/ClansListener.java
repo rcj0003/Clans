@@ -6,6 +6,7 @@ import org.bukkit.Bukkit;
 import org.bukkit.event.EventHandler;
 import org.bukkit.event.Listener;
 import org.bukkit.event.player.AsyncPlayerChatEvent;
+import org.bukkit.event.player.PlayerJoinEvent;
 
 import me.rcj0003.clans.config.MessageConfiguration;
 import me.rcj0003.clans.config.MessageType;
@@ -34,16 +35,21 @@ public class ClansListener implements Listener {
 	}
 	
 	@EventHandler
+	public void onPlayerJoin(PlayerJoinEvent e) {
+		clanService.preloadData(e.getPlayer().getUniqueId());
+	}
+	
+	@EventHandler
 	public void onPlayerChat(AsyncPlayerChatEvent e) {
 		ClanMember clanMember = clanService.getClanMember(e.getPlayer());
 		
-		if (clanMember.isChatActive()) {
+		if (clanMember.isChatActive() && clanMember.getClanId() != null) {
 			Clan clan = clanService.getClanById(clanMember.getClanId());
 			String message = ChatColor.stripColor(StringUtils.convertColorCodes(e.getMessage()));
 			
 			if (message.length() > 0) {
-				String formattedMessage = config.getMessage(MessageType.CLAN_CHAT, message);
-				clan.message(clanService, formattedMessage);
+				String formattedMessage = config.getMessage(MessageType.CLAN_CHAT, clanMember.getTag() == null || clanMember.getTag().length() == 0 ? "" : clanMember.getTag() + " ", e.getPlayer().getName(), message).replace("  ", " ");
+				clan.message(formattedMessage);
 				Bukkit.getLogger().log(Level.ALL, String.format("[Clan %s] ", clan.getUniqueId()) + formattedMessage);
 			}
 			
@@ -53,41 +59,45 @@ public class ClansListener implements Listener {
 
 	@EventHandler
 	public void onCreate(ClanCreateEvent e) {
-		e.getClan().message(clanService, config.getMessage(MessageType.CREATE_CLAN));
+		e.getClan().message(config.getMessage(MessageType.CREATE_CLAN));
 	}
 	
 	@EventHandler
 	public void onDisband(ClanDisbandEvent e) {
-		e.getClan().message(clanService, config.getMessage(MessageType.DISBAND_CLAN));
+		e.getClan().message(config.getMessage(MessageType.DISBAND_CLAN));
 	}
 	
 	@EventHandler
 	public void onJoin(ClanJoinEvent e) {
-		
+		e.getClan().message(config.getMessage(MessageType.JOIN_CLAN, e.getMember().getName()));
 	}
 	
 	@EventHandler
 	public void onLeave(ClanLeaveEvent e) {
 		if (e.getReason() == LeaveReason.KICK) {
-			e.getClan().message(clanService, config.getMessage(MessageType.KICK_ANNOUNCEMENT), e.getMember().getName());
+			e.getClan().message(config.getMessage(MessageType.KICK_ANNOUNCEMENT, e.getMember().getName()));
 		} else {
-			e.getClan().message(clanService, config.getMessage(MessageType.LEAVE_CLAN), e.getMember().getName());
+			e.getClan().message(config.getMessage(MessageType.LEAVE_CLAN, e.getMember().getName()));
 		}
 	}
 	
 	@EventHandler
 	public void onPromote(ClanPromoteEvent e) {
+		e.getClan().message(config.getMessage(MessageType.PROMOTE, e.getMember().getName()));
 	}
 	
 	@EventHandler
 	public void onDemote(ClanDemoteEvent e) {
+		e.getClan().message(config.getMessage(MessageType.DEMOTE, e.getMember().getName()));
 	}
 	
 	@EventHandler
 	public void onInvite(ClanInviteEvent e) {
+		e.getClan().message(config.getMessage(MessageType.INVITE_ANNOUNCEMENT, Bukkit.getOfflinePlayer(e.getInvited()).getName()));
 	}
 	
 	@EventHandler
 	public void onRevokeInvite(ClanRevokeInviteEvent e) {
+		e.getClan().message(config.getMessage(MessageType.REVOKE_INVITE, Bukkit.getOfflinePlayer(e.getInvited()).getName()));
 	}
 }

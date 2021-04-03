@@ -5,8 +5,8 @@ import org.bukkit.scheduler.BukkitRunnable;
 
 import me.rcj0003.clans.config.MessageConfiguration;
 import me.rcj0003.clans.config.MessageType;
+import me.rcj0003.clans.group.Clan;
 import me.rcj0003.clans.group.ClanService;
-import me.rcj0003.clans.group.exceptions.ClanDoesNotExistException;
 import me.rcj0003.clans.utils.command.CommandUser;
 import me.rcj0003.clans.utils.command.SubCommand;
 import me.rcj0003.clans.utils.command.exceptions.InvalidArgumentException;
@@ -44,11 +44,11 @@ public class CreateCommand implements SubCommand {
 	}
 
 	public void execute(CommandUser user, String[] arguments) throws InvalidArgumentException {
-		try {
-			clanService.getClanForPlayer(user.getPlayer());
+		Clan clan = clanService.getClanForPlayer(user.getPlayer());
+		
+		if (clan != null) {
 			user.sendFormattedMessage(config.getMessage(MessageType.IN_CLAN_ERROR));
-		}
-		catch (ClanDoesNotExistException e) {
+		} else {
 			new BukkitRunnable() {
 				public void run() {
 					clanService.createClan(user.getPlayer(), arguments[0]);

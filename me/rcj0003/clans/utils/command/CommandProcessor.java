@@ -7,6 +7,8 @@ import java.util.List;
 import java.util.Map;
 import java.util.stream.Collectors;
 
+import me.rcj0003.clans.utils.command.exceptions.InvalidArgumentException;
+
 public class CommandProcessor {
 	protected Map<String, SubCommand> registeredCommands = new HashMap<>();
 	protected String name;
@@ -122,8 +124,12 @@ public class CommandProcessor {
 					parentCommand + " " + command.getName() + " " + command.getUsage()));
 			return;
 		}
-
-		command.execute(user, newArguments.toArray(new String[0]));
 		
+		try {
+			command.execute(user, newArguments.toArray(new String[0]));
+		}
+		catch (InvalidArgumentException e) {
+			user.sendFormattedMessage(e.getMessage());
+		}
 	}
 }

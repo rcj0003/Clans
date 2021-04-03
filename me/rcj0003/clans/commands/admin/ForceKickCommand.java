@@ -6,6 +6,7 @@ import org.bukkit.plugin.Plugin;
 import org.bukkit.scheduler.BukkitRunnable;
 
 import me.rcj0003.clans.config.MessageConfiguration;
+import me.rcj0003.clans.config.MessageType;
 import me.rcj0003.clans.events.ClanLeaveEvent;
 import me.rcj0003.clans.events.ClanLeaveEvent.LeaveReason;
 import me.rcj0003.clans.group.Clan;
@@ -65,6 +66,8 @@ public class ForceKickCommand extends ArgumentSubCommand {
 				
 				clan.removeMember(player.getUniqueId());
 				member.setClanId(null).update();
+				
+				user.sendFormattedMessage(config.getMessage(MessageType.KICK_ANNOUNCEMENT, player.getName()));
 			}
 		}.runTaskAsynchronously(plugin);
 	}

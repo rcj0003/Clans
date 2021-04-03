@@ -1,6 +1,10 @@
-main: me.short1der.clans.ClansPlugin
+main: me.rcj0003.clans.ClansPlugin
 name: Clans
 version: 1.0.0
 author: rcj0003
 description: Want persistant clans? Viola.
-depend: [ PlaceholderAPI ]
+#depend: [ PlaceholderAPI ]
+commands:
+  clans: 
+    description: Used for all Clans commands.
+    usage: /clans

@@ -22,7 +22,7 @@ public abstract class ArgumentSubCommand implements SubCommand {
 			}
 		}
 		
-		executeVerified(user, arguments);
+		executeVerified(user, values);
 	}
 	
 	public abstract void executeVerified(CommandUser user, Object[] values);

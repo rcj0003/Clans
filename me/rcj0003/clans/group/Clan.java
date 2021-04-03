@@ -2,28 +2,33 @@ package me.rcj0003.clans.group;
 
 import java.util.Collections;
 import java.util.HashSet;
-import java.util.List;
 import java.util.Set;
 import java.util.UUID;
 
+import org.bukkit.Bukkit;
+import org.bukkit.entity.Player;
+
 import me.rcj0003.clans.group.exceptions.AlreadyMemberException;
 import me.rcj0003.clans.group.exceptions.ClanMaxCapacityException;
+import me.rcj0003.clans.utils.Utils.StringUtils;
 
 public class Clan {
 	private ClanFactory clanFactory;
 	private UUID id;
 	private String name, motd;
-	private int maxCapacity;
+	private int maxCapacity, stars, awardedStars;
 	private Set<UUID> members;
 	private Set<UUID> inviteList;
 	private Set<ClanPerk> availablePerks;
 	
-	public Clan(ClanFactory clanFactory, UUID id, String name, String motd, int maxCapacity, Set<UUID> members, Set<UUID> inviteList, Set<ClanPerk> availablePerks) {
+	public Clan(ClanFactory clanFactory, UUID id, String name, String motd, int maxCapacity, int stars, Set<UUID> members, Set<UUID> inviteList, Set<ClanPerk> availablePerks) {
 		this.clanFactory = clanFactory;
 		this.id = id;
 		this.name = name;
 		this.motd = motd;
 		this.maxCapacity = maxCapacity;
+		this.stars = stars;
+		this.awardedStars = 0;
 		this.members = new HashSet<>(maxCapacity);
 		this.inviteList = inviteList;
 		this.availablePerks = availablePerks;
@@ -33,7 +38,7 @@ public class Clan {
 		
 		this.members.addAll(members);
 	}
-	
+
 	public UUID getUniqueId() {
 		return id;
 	}
@@ -96,12 +101,17 @@ public class Clan {
 		return inviteList.contains(id);
 	}
 	
-	public Clan message(ClanService clanService, String... message) {
-		List<ClanMember> members = clanService.getClanMembers(this);
-		
-		for (ClanMember member : members)
-			if (member.isOnline())
-				member.message(message);
+	public Set<UUID> getInvited() {
+		return inviteList;
+	}
+	
+	public Clan message(String... message) {
+		for (UUID id : members) {
+			Player player = Bukkit.getServer().getPlayer(id);
+			
+			if (player.isOnline())
+				player.sendMessage(StringUtils.convertColorCodes(message));
+		}
 		
 		return this;
 	}
@@ -140,6 +150,28 @@ public class Clan {
 	
 	public Clan removePerk(ClanPerk perk) {
 		availablePerks.remove(perk);
+		return this;
+	}
+	
+	public Set<ClanPerk> getPerks() {
+		return availablePerks;
+	}
+	
+	public int getStars() {
+		return stars + awardedStars;
+	}
+	
+	public Clan modifyStars(int value) {
+		awardedStars += value;
+		return this;
+	}
+	
+	public int getAwardedStars() {
+		return awardedStars;
+	}
+	
+	public Clan resetAwardedStars() {
+		awardedStars = 0;
 		return this;
 	}
 }

@@ -1,29 +1,27 @@
 package me.rcj0003.clans.commands;
 
+import java.util.List;
+
 import org.bukkit.Bukkit;
-import org.bukkit.entity.Player;
 import org.bukkit.plugin.Plugin;
 import org.bukkit.scheduler.BukkitRunnable;
 
 import me.rcj0003.clans.config.MessageConfiguration;
 import me.rcj0003.clans.config.MessageType;
-import me.rcj0003.clans.events.ClanLeaveEvent;
-import me.rcj0003.clans.events.ClanLeaveEvent.LeaveReason;
-import me.rcj0003.clans.group.Clan;
-import me.rcj0003.clans.group.ClanMember;
-import me.rcj0003.clans.group.ClanRole;
+import me.rcj0003.clans.group.ClanResults;
 import me.rcj0003.clans.group.ClanService;
+import me.rcj0003.clans.utils.MessageBuilder;
 import me.rcj0003.clans.utils.command.CommandUser;
 import me.rcj0003.clans.utils.command.SubCommand;
 import me.rcj0003.clans.utils.command.exceptions.InvalidArgumentException;
 
-public class LeaveCommand implements SubCommand {
-	private static final String[] DESCRIPTION = new String[] { "Leaves a clan." };
+public class TopCommand implements SubCommand {
+	private static final String[] DESCRIPTION = new String[] { "Gets the list of top 10 clans." };
 	private Plugin plugin;
 	private ClanService clanService;
 	private MessageConfiguration config;
 	
-	public LeaveCommand(Plugin plugin, ClanService clanService, MessageConfiguration config) {
+	public TopCommand(Plugin plugin, ClanService clanService, MessageConfiguration config) {
 		this.plugin = plugin;
 		this.clanService = clanService;
 		this.config = config;
@@ -38,7 +36,7 @@ public class LeaveCommand implements SubCommand {
 	}
 
 	public String getName() {
-		return "leave";
+		return "top";
 	}
 
 	public String[] getDescription() {
@@ -50,20 +48,19 @@ public class LeaveCommand implements SubCommand {
 	}
 
 	public void execute(CommandUser user, String[] arguments) throws InvalidArgumentException {
-		Player player = user.getPlayer();
-		ClanMember member = clanService.getClanMember(player);
-		
-		if (member.getRole() == ClanRole.LEADER) {
-			user.sendFormattedMessage(config.getMessage(MessageType.TRANSFER_REQUIRED));
-			return;
-		}
+		List<ClanResults> results = clanService.getLeaderboard();
+		user.sendFormattedMessage(config.getMessage(MessageType.LOADING));
 		
 		new BukkitRunnable() {
 			public void run() {
-				Clan clan = clanService.getClanForPlayer(player);
-				Bukkit.getPluginManager().callEvent(new ClanLeaveEvent(clan, member, LeaveReason.LEAVE));
-				clan.removeMember(player.getUniqueId());
-				member.setClanId(null).update();
+				MessageBuilder message = new MessageBuilder();
+				message.addText(config.getMessage(MessageType.LEADERBOARD_HEADER));
+				
+				for (ClanResults result : results) {
+					message.addText(config.getMessage(MessageType.LEADERBOARD_FORMAT, result.getStars(), result.getName(), Bukkit.getPlayer(result.getLeaderId()).getName()));
+				}
+				
+				user.getPlayer().spigot().sendMessage(message.build());
 			}
 		}.runTaskAsynchronously(plugin);
 	}

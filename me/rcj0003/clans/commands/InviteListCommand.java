@@ -1,42 +1,45 @@
 package me.rcj0003.clans.commands;
 
-import org.bukkit.plugin.Plugin;
-import org.bukkit.scheduler.BukkitRunnable;
+import java.util.UUID;
+
+import org.bukkit.Bukkit;
+import org.bukkit.OfflinePlayer;
+import org.bukkit.entity.Player;
 
 import me.rcj0003.clans.config.MessageConfiguration;
 import me.rcj0003.clans.config.MessageType;
 import me.rcj0003.clans.group.Clan;
 import me.rcj0003.clans.group.ClanMember;
-import me.rcj0003.clans.group.ClanPerk;
 import me.rcj0003.clans.group.ClanRole;
 import me.rcj0003.clans.group.ClanService;
 import me.rcj0003.clans.group.exceptions.ClanDoesNotExistException;
+import me.rcj0003.clans.utils.MessageBuilder;
 import me.rcj0003.clans.utils.command.CommandUser;
 import me.rcj0003.clans.utils.command.SubCommand;
 import me.rcj0003.clans.utils.command.exceptions.InvalidArgumentException;
+import net.md_5.bungee.api.chat.ClickEvent;
+import net.md_5.bungee.api.chat.ClickEvent.Action;
 
-public class TagCommand implements SubCommand {
-	private static final String[] DESCRIPTION = new String[] { "If your clan has the perk, you can set your personal tag." };
-	private Plugin plugin;
+public class InviteListCommand implements SubCommand {
+	private static final String[] DESCRIPTION = new String[] { "Lists out current active invites." };
 	private ClanService clanService;
 	private MessageConfiguration config;
-	
-	public TagCommand(Plugin plugin, ClanService clanService, MessageConfiguration config) {
-		this.plugin = plugin;
+
+	public InviteListCommand(ClanService clanService, MessageConfiguration config) {
 		this.clanService = clanService;
 		this.config = config;
 	}
-	
+
 	public boolean getRequiresPlayer() {
 		return true;
 	}
 
 	public int getMinimumArguments() {
-		return 1;
+		return 0;
 	}
 
 	public String getName() {
-		return "tag";
+		return "invitelist";
 	}
 
 	public String[] getDescription() {
@@ -44,7 +47,7 @@ public class TagCommand implements SubCommand {
 	}
 
 	public String getUsage() {
-		return "[Tag]";
+		return "";
 	}
 
 	public void execute(CommandUser user, String[] arguments) throws InvalidArgumentException {
@@ -54,32 +57,23 @@ public class TagCommand implements SubCommand {
 			user.sendFormattedMessage(config.getMessage(MessageType.NOT_IN_CLAN_ERROR));
 			return;
 		}
-		
-		if (!clan.hasPerk(ClanPerk.MOTD)) {
-			user.sendFormattedMessage(config.getMessage(MessageType.TAG_NOT_UNLOCKED));
-			return;
-		}
-		
+
 		ClanMember member = clanService.getClanMember(user.getPlayer());
-		
-		if (!member.getRole().hasHigherWeightThan(ClanRole.MEMBER)) {
+
+		if (!member.getRole().hasHigherWeightThan(ClanRole.OFFICER)) {
 			user.sendFormattedMessage(config.getMessage(MessageType.HIGHER_ROLE_REQUIRED));
 			return;
 		}
-		
-		String tag = arguments[0];
-		
-		if (tag.length() > 12) {
-			user.sendFormattedMessage(config.getMessage(MessageType.TAG_TOO_LONG));
-			return;
+
+		user.sendFormattedMessage(config.getMessage(MessageType.INVITE_LIST_HEADER));
+
+		for (UUID id : clan.getInvited()) {
+			OfflinePlayer player = Bukkit.getOfflinePlayer(id);
+			MessageBuilder message = new MessageBuilder();
+			user.getPlayer().spigot()
+					.sendMessage(message.addText(config.getMessage(MessageType.INVITE_LIST_FORMAT, player.getName()))
+							.addEvent(new ClickEvent(Action.RUN_COMMAND, "/clans revokeinvite " + player.getName()))
+							.build());
 		}
-		
-		member.setTag(tag);
-		
-		new BukkitRunnable() {
-			public void run() {
-				member.update();
-			}
-		}.runTaskAsynchronously(plugin);
 	}
 }

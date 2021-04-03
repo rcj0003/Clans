@@ -1,7 +1,7 @@
 package me.rcj0003.clans.group;
 
 public enum ClanRole {
-	LEADER("Leader", 3), TRUSTED("Trusted", 2), MEMBER("Member", 1), NONE("None", 0);
+	LEADER("Leader", 3), OFFICER("Officer", 2), MEMBER("Member", 1), NONE("None", 0);
 	
 	private String displayName;
 	private int weight;

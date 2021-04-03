@@ -6,6 +6,7 @@ import org.bukkit.plugin.Plugin;
 import org.bukkit.scheduler.BukkitRunnable;
 
 import me.rcj0003.clans.config.MessageConfiguration;
+import me.rcj0003.clans.config.MessageType;
 import me.rcj0003.clans.group.Clan;
 import me.rcj0003.clans.group.ClanService;
 import me.rcj0003.clans.utils.command.CommandUser;
@@ -64,7 +65,7 @@ public class SetCapacityCommand extends ArgumentSubCommand {
 					return;
 				}
 				
-				clan.setCapacity(capacity).message(clanService).update();
+				clan.setCapacity(capacity).message(config.getMessage(MessageType.CAPACITY_SET, capacity)).update();
 			}
 		}.runTaskAsynchronously(plugin);
 	}

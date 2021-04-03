@@ -23,12 +23,29 @@ public class ClanService {
 	private Map<UUID, Clan> clans = new ConcurrentHashMap<>();
 	private Map<UUID, ClanMember> clanMembers = new ConcurrentHashMap<>();
 	
+	private List<ClanResults> leaderboard;
+	
 	private ClanFactory clanFactory;
 	private Plugin plugin;
 	
 	public ClanService(Plugin plugin, ClanFactory clanFactory) {
 		this.plugin = plugin;
 		this.clanFactory = clanFactory;
+		
+		new BukkitRunnable() {
+			public void run() {
+				List<ClanResults> newLeaderboard = clanFactory.getTopClans();
+				leaderboard = newLeaderboard;
+			}
+		}.runTaskTimerAsynchronously(plugin, 1, 20 * 300);
+	}
+	
+	public void shutdown() {
+		for (Clan clan : clans.values())
+			clan.update();
+		
+		for (ClanMember member : clanMembers.values())
+			member.update();
 	}
 	
 	public List<ClanMember> getClanMembers(Clan clan) {
@@ -53,9 +70,14 @@ public class ClanService {
 		if (clans.containsKey(member.getClanId())) {
 			return clans.get(member.getClanId());
 		} else {
-			Clan clan = clanFactory.getClanById(id);
-			clans.put(clan.getUniqueId(), clan);
-			return clan;
+			try {
+				Clan clan = clanFactory.getClanById(id);
+				clans.put(clan.getUniqueId(), clan);
+				return clan;
+			}
+			catch (ClanDoesNotExistException e) {
+				return null;
+			}
 		}
 	}
 	
@@ -63,9 +85,14 @@ public class ClanService {
 		if (clans.containsKey(id)) {
 			return clans.get(id);
 		} else {
-			Clan clan = clanFactory.getClanById(id);
-			clans.put(clan.getUniqueId(), clan);
-			return clan;
+			try {
+				Clan clan = clanFactory.getClanById(id);
+				clans.put(clan.getUniqueId(), clan);
+				return clan;
+			}
+			catch (ClanDoesNotExistException e) {
+				return null;
+			}
 		}
 	}
 	
@@ -118,6 +145,14 @@ public class ClanService {
 	
 	public void deleteClan(Clan clan) {
 		Bukkit.getPluginManager().callEvent(new ClanDisbandEvent(clan));
+		
+		for (UUID member : clan.getMembers()) {
+			ClanMember clanMember = clanMembers.get(member);
+			
+			if (clanMember != null)
+				clanMember.setClanId(null);
+		}
+		
 		clans.remove(clan.getUniqueId());
 		
 		new BukkitRunnable() {
@@ -129,11 +164,41 @@ public class ClanService {
 	
 	public void leaveClan(ClanMember member, LeaveReason reason) {
 		Bukkit.getPluginManager().callEvent(new ClanLeaveEvent(getClanById(member.getClanId()), member, reason));
+
+		if (clans.containsKey(member.getClanId())) {
+			Clan clan = clans.get(member.getClanId());
+			clan.removeMember(member.getUniqueId());
+		}
+		
 		member.setClanId(null).setRole(ClanRole.NONE);
 		
 		new BukkitRunnable() {
 			public void run() {
 				member.update();
+			}
+		}.runTaskAsynchronously(plugin);
+	}
+	
+	public List<ClanResults> getLeaderboard() {
+		return leaderboard;
+	}
+	
+	public void preloadData(UUID id) {
+		new BukkitRunnable() {
+			public void run() {
+				ClanMember member = clanFactory.getOrCreateClanMemberById(id);
+				clanMembers.put(id, member);
+				
+				if (member.getClanId() != null) {
+					try {
+						Clan clan = clanFactory.getClanById(member.getClanId());
+						clans.put(clan.getUniqueId(), clan);
+					}
+					catch (ClanDoesNotExistException e) {
+						e.printStackTrace();
+						return;
+					}
+				}
 			}
 		}.runTaskAsynchronously(plugin);
 	}

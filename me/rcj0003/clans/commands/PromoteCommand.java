@@ -1,6 +1,7 @@
 package me.rcj0003.clans.commands;
 
 import org.bukkit.Bukkit;
+import org.bukkit.OfflinePlayer;
 import org.bukkit.entity.Player;
 import org.bukkit.plugin.Plugin;
 import org.bukkit.scheduler.BukkitRunnable;
@@ -56,15 +57,26 @@ public class PromoteCommand extends ArgumentSubCommand {
 
 	@Override
 	public void executeVerified(CommandUser user, Object[] values) {
-		Player player = (Player) values[0];
+		OfflinePlayer player = (OfflinePlayer) values[0];
+		
+		if (player.getUniqueId() == user.getPlayer().getUniqueId()) {
+			user.sendFormattedMessage(config.getMessage(MessageType.CANT_DO_ON_SELF));
+			return;
+		}
+		
 		Clan clan = clanService.getClanForPlayer(user.getPlayer());
+
+		if (clan == null) {
+			user.sendFormattedMessage(config.getMessage(MessageType.NOT_IN_CLAN_ERROR));
+			return;
+		}
 		
 		if (!clan.getMembers().contains(player.getUniqueId())) {
 			user.sendFormattedMessage(config.getMessage(MessageType.MEMBER_NOT_IN_CLAN, player.getName()));
 			return;
 		}
 		
-		ClanMember promotee = clanService.getClanMember(player);
+		ClanMember promotee = clanService.getClanMember(player.getUniqueId());
 		ClanMember you = clanService.getClanMember(user.getPlayer());
 		
 		if (!you.getRole().hasHigherWeightThan(promotee.getRole())) {
@@ -73,6 +85,12 @@ public class PromoteCommand extends ArgumentSubCommand {
 		}
 		
 		ClanRole newRole = promotee.getRole().getNextHigherRole();
+		
+		if (newRole == ClanRole.LEADER) {
+			user.sendFormattedMessage(config.getMessage(MessageType.CANT_PROMOTE));
+			return;
+		}
+		
 		Bukkit.getPluginManager().callEvent(new ClanPromoteEvent(clan, promotee, promotee.getRole(), newRole));
 		
 		new BukkitRunnable() {

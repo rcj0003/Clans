@@ -1,5 +1,6 @@
 package me.rcj0003.clans.group;
 
+import java.util.List;
 import java.util.UUID;
 
 import org.bukkit.entity.Player;
@@ -20,4 +21,6 @@ public interface ClanFactory {
 	void updateClan(Clan clan) throws ClanDataException;
 	
 	void deleteClan(UUID id) throws ClanDataException;
+	
+	List<ClanResults> getTopClans();
 }
